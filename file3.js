@@ -4,6 +4,7 @@ var raf;
 var running = false;
 
 var ball = {
+    
     x: 100,
     y: 100,
     vx: 5,
@@ -16,8 +17,16 @@ var ball = {
         ctx.closePath();
         ctx.fillStyle = this.color;
         ctx.fill();
-    }
+    },
+    rotateButton: {
+        draw: function() {
+            ctx.beginPath();
+            ctx.arc
+        }
+    },
 };
+
+
 
 function clear() {
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
