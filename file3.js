@@ -13,7 +13,8 @@ function RectImage () {
     this.height = 95;
     this.vx = 5;
     this.vy = 1;
-    this.color = 'red';
+    this.strokeStyle = 'rgba(0, 0, 0, 1)';
+    this.fillStyle = 'rgba(255, 0, 0, 0.9)';
 
     this.centerX = this.x + this.width / 2;
     this.centerY = this.y + this.height + 25;
@@ -24,15 +25,17 @@ function RectImage () {
     this.isRotating = false;
     this.isSelected = false;
 
-    this.drawImage = function() {
-        ctx.beginPath();
-        // ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
-        ctx.rect(that.x, that.y, that.width, that.height);
-        ctx.closePath();
+    this.drawImage = function(fillStyle = that.fillStyle, strokeStyle = that.strokeStyle) {
         ctx.save();
-        ctx.strokeStyle = that.color;
+        ctx.beginPath();
+        ctx.rect(-(that.width / 2), -(that.height / 2), that.width, that.height);
+        ctx.fillStyle = fillStyle;
+        ctx.strokeStyle = strokeStyle;
+        ctx.fill();
         ctx.stroke();
+        ctx.closePath();
         ctx.restore();
+
     };
     this.drawButton = function() {
         ctx.beginPath();
@@ -85,14 +88,13 @@ function main() {
     var image = new RectImage();
 
     canvas.addEventListener('click',function(e){
-        // if (!running) {
-        //     raf = window.requestAnimationFrame(draw);
-        //     running = true;
-        // }
         if (image.inRect(e.offsetX, e.offsetY) && !image.isSelected) {
             image.isSelected = true;
             clear();
+            ctx.save();
+            ctx.translate(image.x + image.width / 2, image.y + image.height / 2);
             image.drawImage();
+            ctx.restore();
             image.drawButton();
         } else if (image.inRect(e.offsetX, e.offsetY) && image.isSelected) {
             image.isSelected = false;
@@ -102,6 +104,7 @@ function main() {
     });
 
     canvas.addEventListener('mousedown', function(e){
+        image.isMouseUp = false;
         image.isMouseDown = true;
         if (image.inCircular(e.offsetX, e.offsetY)) {
             image.isRotating = true;
@@ -111,6 +114,7 @@ function main() {
 
     canvas.addEventListener('mouseup', function(e){
         image.isMouseDown = false;
+        image.isMouseUp = true;
         if (image.isRotating) {
             image.isRotating = false;
             clear();
@@ -126,17 +130,26 @@ function main() {
         //     image.y = e.offsetY;
         //     image.draw();
         // }
-        if (image.isMouseDown) {
-
+        if (image.isMouseDown && image.isRotating) {
+            ctx.save();
+            clear();
+            ctx.translate(image.x + image.width / 2, image.y + image.height / 2);
+            ctx.rotate(Math.atan2(e.offsetY, e.offsetX));
+            image.drawImage();
+            image.drawButton();
+            ctx.restore();
         }
     });
 
     canvas.addEventListener('mouseout', function(e){
-        window.cancelAnimationFrame(raf);
-        running = false;
+        image.isMouseDown = false;
+        image.isMouseUp = false;
+        image.isSelected = false;
     });
-
+    ctx.save();
+    ctx.translate(image.x + image.width / 2, image.y + image.height / 2);
     image.drawImage();
+    ctx.restore();
 }
 
 main();
