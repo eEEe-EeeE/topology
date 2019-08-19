@@ -4,73 +4,116 @@ var ctx = canvas.getContext('2d');
 var raf;
 var running = false;
 
-function RectImage () {
+function BaseImage () {
 
     var that = this;
-    this.x = 200;
-    this.y = 100;
-    this.width = 75;
-    this.height = 95;
+    // 图形的矩形坐标系的位置
+    this.rectangleX = 200;
+    this.rectangleY = 100;
+    // 图形的矩形的宽和高
+    this.rectangleW = 75;
+    this.rectangleH = 95;
     this.vx = 5;
     this.vy = 1;
     this.strokeStyle = 'rgba(0, 0, 0, 1)';
     this.fillStyle = 'rgba(255, 0, 0, 0.9)';
-
-    this.centerX = this.x + this.width / 2;
-    this.centerY = this.y + this.height + 25;
-    this.radius = 10;
 
     this.isMouseDown = false;
     this.isMouseUp = false;
     this.isRotating = false;
     this.isSelected = false;
 
-    this.drawImage = function(fillStyle = that.fillStyle, strokeStyle = that.strokeStyle) {
+    // 在矩形坐标系中画图
+    this.drawRect = function(fillStyle=this.fillStyle, strokeStyle=this.strokeStyle) {
         ctx.save();
-        ctx.beginPath();
-        ctx.rect(-(that.width / 2), -(that.height / 2), that.width, that.height);
+        ctx.translate(this.rectangleX, this.rectangleY);
         ctx.fillStyle = fillStyle;
         ctx.strokeStyle = strokeStyle;
+        ctx.beginPath();
+        ctx.rect(0, 0, this.rectangleW, this.rectangleH);
         ctx.fill();
         ctx.stroke();
         ctx.closePath();
         ctx.restore();
+    };
 
-    };
     this.drawButton = function() {
+        var radius = 10;
+        ctx.save();
+        ctx.translate(this.rectangleX + this.rectangleW / 2, this.rectangleY + this.rectangleH + 2 * radius);
+
         ctx.beginPath();
-        ctx.arc(that.centerX, that.centerY, that.radius, 0, 2 * Math.PI, true);
+        ctx.arc(0, 0, radius, 0, 2 * Math.PI, true);
         ctx.stroke();
         ctx.closePath();
+
         ctx.beginPath();
-        ctx.arc(that.centerX, that.centerY, that.radius / 2, 0, 2 * Math.PI, true);
+        ctx.arc(0, 0, radius / 2, 0, 2 * Math.PI, true);
         ctx.stroke();
         ctx.closePath();
+
         ctx.beginPath();
-        ctx.moveTo(that.x + that.width / 2, that.y + that.height);
-        ctx.lineTo(that.centerX,that.centerY - that.radius);
+        ctx.moveTo(0, -radius);
+        ctx.lineTo(0, -2 * radius);
         ctx.stroke();
         ctx.closePath();
+        ctx.restore();
     };
-    this.inRect = function (offsetX, offsetY) {
-        return offsetX >= that.x && offsetX <= that.x + that.width
-            && offsetY >= that.y && offsetY <= that.y + that.height;
+
+    this.isInImage = function (x, y) {
+        var mmm = ctx.isPointInPath(x, y);
+        return mmm;
     };
-    this.inCircular = function (offsetX, offsetY) {
-        return Math.sqrt(Math.pow(offsetX - that.centerX, 2) + Math.pow(offsetY - that.centerY, 2)) <= that.radius;
+
+    this.isInButton = function (x, y) {
+        return ctx.isPointInPath(x, y);
     }
 }
 
+function Point(x, y) {
+    var p_x = x;
+    var p_y = y;
+    this.getX = function () {
+        return p_x;
+    };
+    this.getY = function () {
+        return p_y;
+    };
+    this.setX = function (x) {
+        p_x = x;
+    };
+    this.setY = function (y) {
+        p_y = y;
+    }
+}
+
+function rotationVector(x, y, angle) {
+    return new Point(x * Math.cos(angle) - y * Math.sin(angle), x * Math.sin(angle) + y * Math.cos(angle));
+}
+
+function rotateImage(image, angle) {
+    var center = new Point(image.rectangleW / 2, image.rectangleH / 2);
+    var newCenter = rotationVector(center.getX(), center.getY(), angle);
+    var shiftV = new Point(center.getX() - newCenter.getX(), center.getY() - newCenter.getY());
+    ctx.save();
+    ctx.translate(image.rectangleX + shiftV.getX(), image.rectangleY + shiftV.getY());
+    ctx.rotate(angle);
+    image.drawImage();
+    image.drawButton();
+    ctx.restore();
+}
 
 function clear(transparency = 1) {
+    ctx.save();
     ctx.fillStyle = 'rgba(255, 255, 255, ' + transparency + ')';
     ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.restore();
 }
 
 function draw() {
     clear();
-    var image = new RectImage();
-    image.drawImage();
+    var image = new BaseImage();
+    image.drawRect();
     image.x += image.vx;
     image.y += image.vy;
 
@@ -85,70 +128,62 @@ function draw() {
 }
 
 function main() {
-    var image = new RectImage();
+    var image = new BaseImage();
 
     canvas.addEventListener('click',function(e){
-        if (image.inRect(e.offsetX, e.offsetY) && !image.isSelected) {
+        if (image.isInImage(e.offsetX, e.offsetY) && !image.isSelected) {
             image.isSelected = true;
             clear();
             ctx.save();
-            ctx.translate(image.x + image.width / 2, image.y + image.height / 2);
-            image.drawImage();
-            ctx.restore();
+            image.drawRect('rgba(255, 0, 0, 0.9)');
             image.drawButton();
-        } else if (image.inRect(e.offsetX, e.offsetY) && image.isSelected) {
+            ctx.restore();
+
+        } else if (image.isInImage(e.offsetX, e.offsetY) && image.isSelected) {
             image.isSelected = false;
             clear();
-            image.drawImage();
-        }
-    });
-
-    canvas.addEventListener('mousedown', function(e){
-        image.isMouseUp = false;
-        image.isMouseDown = true;
-        if (image.inCircular(e.offsetX, e.offsetY)) {
-            image.isRotating = true;
-            clear(0.3);
-        }
-    });
-
-    canvas.addEventListener('mouseup', function(e){
-        image.isMouseDown = false;
-        image.isMouseUp = true;
-        if (image.isRotating) {
-            image.isRotating = false;
-            clear();
-            image.drawImage();
-            image.drawButton();
-        }
-    });
-
-    canvas.addEventListener('mousemove', function(e){
-        // if (!running) {
-        //     clear();
-        //     image.x = e.offsetX;
-        //     image.y = e.offsetY;
-        //     image.draw();
-        // }
-        if (image.isMouseDown && image.isRotating) {
             ctx.save();
-            clear();
-            ctx.translate(image.x + image.width / 2, image.y + image.height / 2);
-            ctx.rotate(Math.atan2(e.offsetY, e.offsetX));
-            image.drawImage();
-            image.drawButton();
+            image.drawRect();
             ctx.restore();
         }
     });
 
-    canvas.addEventListener('mouseout', function(e){
-        image.isMouseDown = false;
-        image.isMouseUp = false;
-        image.isSelected = false;
-    });
+    // canvas.addEventListener('mousedown', function(e){
+    //     image.isMouseUp = false;
+    //     image.isMouseDown = true;
+    //     if (image.isInButton(e.offsetX, e.offsetY)) {
+    //         image.isRotating = true;
+    //         clear(0.3);
+    //     }
+    // });
+    //
+    // canvas.addEventListener('mouseup', function(e){
+    //     image.isMouseDown = false;
+    //     image.isMouseUp = true;
+    //     if (image.isRotating) {
+    //         image.isRotating = false;
+    //         clear();
+    //         image.drawRect();
+    //         image.drawButton();
+    //     }
+    // });
+    //
+    // canvas.addEventListener('mousemove', function(e){
+    //     if (image.isMouseDown && image.isRotating) {
+    //         ctx.save();
+    //         clear();
+    //         rotateImage(image, Math.atan2(e.offsetY, e.offsetX));
+    //         ctx.restore();
+    //     }
+    // });
+    //
+    // canvas.addEventListener('mouseout', function(e){
+    //     image.isMouseDown = false;
+    //     image.isMouseUp = false;
+    //     image.isSelected = false;
+    // });
     ctx.save();
-    ctx.translate(image.x + image.width / 2, image.y + image.height / 2);
-    image.drawImage();
+    image.drawRect();
     ctx.restore();
 }
 
