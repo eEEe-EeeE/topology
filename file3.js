@@ -175,7 +175,7 @@ canvas.addEventListener('mousedown', function(e){
     }
 });
 canvas.addEventListener('mousemove', function(e){
-    if (image.isButtonDown && image.isRotating) {
+    if (image.isButtonDown && image.isRotating && image.isSelected) {
         clear();
         rotateImage(image, e.offsetX, e.offsetY);
     }
