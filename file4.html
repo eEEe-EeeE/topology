@@ -37,24 +37,46 @@
     };
 
 
-    var paintLine=function(ctx,p1,p2){
-        var x=(p1.x+p2.x)/2,
-            y=(p1.y+p2.y)/2;
+    var paintLine = function (ctx, p1, p2) {
 
+        var update_point = function (theta) {
+            var x = theta * p1.x + (1 - theta) * p2.x;
+            var y = theta * p1.y + (1 - theta) * p2.y;
+            return {x: x, y: y};
+        };
+
+        var point;
         ctx.save();
 
         ctx.beginPath();
-        ctx.lineWidth="1";
-        ctx.strokeStyle="red";
+        ctx.lineWidth = "1";
+        ctx.strokeStyle = "red";
         ctx.moveTo(p1.x, p1.y);
         ctx.lineTo(p2.x, p2.y);
 
 
         ctx.save();
-        ctx.font="20px Georgia";
-        ctx.translate(x, y);
+        ctx.font = "20px Georgia";
+        point = update_point(1/2);
+        ctx.translate(point.x, point.y);
         ctx.rotate(Math.atan2(p2.y - p1.y, p2.x - p1.x));
         ctx.fillText("title", 0, 0);
+        ctx.restore();
+
+        ctx.save();
+        ctx.font = "20px Georgia";
+        point = update_point(3/4);
+        ctx.translate(point.x, point.y);
+        ctx.rotate(Math.atan2(p2.y - p1.y, p2.x - p1.x));
+        ctx.fillText("from", 0, 0);
+        ctx.restore();
+
+        ctx.save();
+        ctx.font = "20px Georgia";
+        point = update_point(1/4);
+        ctx.translate(point.x, point.y);
+        ctx.rotate(Math.atan2(p2.y - p1.y, p2.x - p1.x));
+        ctx.fillText("to", 0, 0);
         ctx.restore();
 
         ctx.stroke();
