@@ -1,15 +1,82 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="utf-8">-->
+<!--<head>-->
+<!--    <meta charset="utf-8"/>-->
+<!--    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>-->
+<!--    <title>file4</title>-->
+<!--    <style type="text/css">-->
+<!--        canvas { border: 1px solid black; }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--<canvas id="canvas" width="800" height="600"></canvas>-->
+<!--<script src="file4.js"></script>-->
+<!--</body>-->
+<!--</html>-->
+
 <!DOCTYPE html>
-<html lang="utf-8">
-<head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <title>file4</title>
-    <style type="text/css">
-        canvas { border: 1px solid black; }
-    </style>
-</head>
+<html>
 <body>
-<canvas id="canvas" width="800" height="600"></canvas>
-<script src="file4.js"></script>
+
+<canvas id="myCanvas" width="1024" height="1280" style="border:1px solid #d3d3d3;">
+    Your browser does not support the HTML5 canvas tag.
+</canvas>
+
+<script>
+    var trans=function(r,p1,p2){
+
+        var x=(p2.x-p1.x);
+        var y=(p2.y-p1.y);
+        var sin=Math.sin(r);
+        var cos=Math.cos(r);
+
+        var rx=x*cos-y*sin;
+        var ry=x*sin+y*cos;
+
+        return {tx:x-rx,ty:ry-y};
+    };
+
+
+    var paintLine=function(ctx,p1,p2){
+        var x=(p1.x+p2.x)/2,
+            y=(p1.y+p2.y)/2;
+
+        ctx.save();
+
+        ctx.beginPath();
+        ctx.lineWidth="1";
+        ctx.strokeStyle="red";
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+
+
+        ctx.save();
+        ctx.font="20px Georgia";
+        ctx.translate(x, y);
+        ctx.rotate(Math.atan2(p2.y - p1.y, p2.x - p1.x));
+        ctx.fillText("title", 0, 0);
+        ctx.restore();
+
+        ctx.stroke();
+        ctx.restore();
+    };
+
+    var c=document.getElementById("myCanvas");
+    var ctx=c.getContext("2d");
+
+
+    var x1=300,y1=560;
+
+    var n=9;
+    var R=300;
+
+    for(var i=0;i<n;i++){
+        var r=-(i)*18*Math.PI/180;
+        paintLine(ctx,{x:x1,y:y1},{x:(x1+Math.cos(r)*R),y:(y1+Math.sin(r)*R)});
+    }
+
+
+</script>
+
 </body>
 </html>
