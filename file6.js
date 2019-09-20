@@ -1,4 +1,4 @@
-function draw(x, y, length, crude) {
+function draw(x, y, length, crude, color = 'rgb(50,65,106,1)') {
     var ctx = document.getElementById('canvas').getContext('2d');
 
     var ellipse_x_y_ratio = 4 / 9;
@@ -7,9 +7,9 @@ function draw(x, y, length, crude) {
     var ellipse_x = ellipse_y * ellipse_x_y_ratio;
 
     var linearGradient = ctx.createLinearGradient(x + length / 2, y, x + length / 2, y + crude);
-    linearGradient.addColorStop(0, 'rgb(50,65,106)');
+    linearGradient.addColorStop(0, color);
     linearGradient.addColorStop(0.5, 'white');
-    linearGradient.addColorStop(1, 'rgb(50,65,106)');
+    linearGradient.addColorStop(1, color);
 
     ctx.save();
     ctx.fillStyle = linearGradient;
