@@ -42,7 +42,7 @@ function aggregate(items, combineType, combineContent) {
     var isJoin = false;
     for (item of identical_items) {
         for (group of similarGroups) {
-            if(isSimilarVertex(item, group[0])) {
+            if (isSimilarVertex(item, group[0])) {
                 group.push(item);
                 isJoin = true;
             }
